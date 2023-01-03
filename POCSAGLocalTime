@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+from datetime import datetime
+import os
+now = datetime.now()
+command = "RemoteCommand 7642 page 224 \"YYYYMMDDHHMMSS" + now.strftime("%y%m%d%H%M%S") + "\""
+print (command)
+os.system(command)
