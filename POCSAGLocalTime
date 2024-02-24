@@ -4,6 +4,7 @@ from datetime import datetime
 from datetime import timedelta
 import os
 import time
+import glob
 
 # Setup logging
 logger = logging.getLogger('POCSAGLocalTime')
@@ -17,15 +18,19 @@ def SendMessage ():
     now = datetime.now()
     command = "RemoteCommand 7642 page 224 \"YYYYMMDDHHMMSS" + now.strftime("%y%m%d%H%M%S") + "\""
     logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS {now.strftime('%y%m%d%H%M%S')}\"")
-    print (command)
     os.system(command)
     return()
 
 def GetTimeslots():
-    logfile = '/var/log/pi-star/DAPNETGateway-' + datetime.now().strftime('%Y-%m-%d') + '.log'
+    date_today = datetime.now().strftime('%Y-%m-%d')
+    logfile_today = '/var/log/pi-star/DAPNETGateway-' + date_today + '.log'
+    
+    if not os.path.exists(logfile_today):
+        list_of_files = glob.glob('/var/log/pi-star/DAPNETGateway-*.log')  # get list of all log files
+        logfile_today = max(list_of_files, key=os.path.getctime)  # find the most recent log file
     search_phrase = 'Schedule information received: '
     while True:
-        with open(logfile, 'r') as file:
+        with open(logfile_today, 'r') as file:
             lines = file.readlines()
         # Reverse the list to start from the end of the file
         lines.reverse()
@@ -65,16 +70,13 @@ def calculate_timeslot_time(timeslot):
     slot_time = datetime.fromtimestamp(slot_start / 10)
     return slot_time
 
-
-# Usage
+# Main Loop
 while True:
     hex_string = GetTimeslots()  # get the timeslot string from the log file
     timeslots = calculate_timeslots(hex_string)
     # sort the timeslots by time, and select the first one
     timeslots.sort(key=lambda x: x[1])
     next_timeslot, next_timeslot_time = timeslots[0]
-    print(f"Next timeslot: {next_timeslot}")
-    print(f"Next timeslot time: {next_timeslot_time}")
 
     # wait until the next timeslot time
     while datetime.now() < next_timeslot_time:
