@@ -1,7 +1,87 @@
 #!/usr/bin/env python3
+import logging
 from datetime import datetime
+from datetime import timedelta
 import os
-now = datetime.now()
-command = "RemoteCommand 7642 page 224 \"YYYYMMDDHHMMSS" + now.strftime("%y%m%d%H%M%S") + "\""
-print (command)
-os.system(command)
+import time
+
+# Setup logging
+logger = logging.getLogger('POCSAGLocalTime')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler('/var/log/pi-star/DAPNETGateway.log')
+formatter = logging.Formatter('M: %(asctime)s.%(msecs)03d %(message)s - by %(name)s',"%Y-%m-%d %H:%M:%S")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+def SendMessage ():
+    now = datetime.now()
+    command = "RemoteCommand 7642 page 224 \"YYYYMMDDHHMMSS" + now.strftime("%y%m%d%H%M%S") + "\""
+    logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS {now.strftime('%y%m%d%H%M%S')}\"")
+    print (command)
+    os.system(command)
+    return()
+
+def GetTimeslots():
+    logfile = '/var/log/pi-star/DAPNETGateway-' + datetime.now().strftime('%Y-%m-%d') + '.log'
+    search_phrase = 'Schedule information received: '
+    while True:
+        with open(logfile, 'r') as file:
+            lines = file.readlines()
+        # Reverse the list to start from the end of the file
+        lines.reverse()
+        for line in lines:
+            if search_phrase in line:
+                # Find the index of the search phrase in the line
+                index = line.find(search_phrase)
+                # Extract the 4 characters after "received: "
+                timeslot = line[index + len(search_phrase):index + len(search_phrase) + 4]
+                print (timeslot)
+                return timeslot
+        # If no timeslot was found, wait for 5 seconds and then try again
+        time.sleep(5)
+
+def hex_to_bin(hex_string):
+    return bin(int(hex_string, 16))[2:].zfill(16)
+
+def calculate_timeslots(hex_string):
+    timeslots = []
+    for i in range(0, len(hex_string)):
+        timeslot = int(hex_string[i], 16)
+        timeslots.append((timeslot, calculate_timeslot_time(timeslot)))
+    return timeslots
+
+def calculate_timeslot_time(timeslot):
+    now = time.time()  # current time in seconds since the epoch
+    decis = now * 10  # convert to deciseconds
+    current_slot = int((decis // 64) % 16)
+    block_start = decis - (decis % 1024)  # start of the current block
+
+    # calculate the start time of the next occurrence of the timeslot
+    if timeslot < current_slot:
+        block_start += 1024  # next block
+    slot_start = block_start + timeslot * 64
+
+    # convert back to a datetime object
+    slot_time = datetime.fromtimestamp(slot_start / 10)
+    return slot_time
+
+
+# Usage
+while True:
+    hex_string = GetTimeslots()  # get the timeslot string from the log file
+    timeslots = calculate_timeslots(hex_string)
+    # sort the timeslots by time, and select the first one
+    timeslots.sort(key=lambda x: x[1])
+    next_timeslot, next_timeslot_time = timeslots[0]
+    print(f"Next timeslot: {next_timeslot}")
+    print(f"Next timeslot time: {next_timeslot_time}")
+
+    # wait until the next timeslot time
+    while datetime.now() < next_timeslot_time:
+        time.sleep(1)
+
+    SendMessage()
+
+    # wait for 4 minutes before checking the log file and sending the next message
+    time.sleep(4 * 60)
+
