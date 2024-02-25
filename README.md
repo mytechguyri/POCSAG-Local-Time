@@ -14,6 +14,17 @@ What this program does is, it checks our DAPNETGateway log file, and checks what
 So, once we know our timeslot, it calculates when the next assigned timeslot is, and then using the RemoteCommand functionality of pi-star, it sends a page locally as RIC 224 (doesn't go over DAPNET) in our correct timeslot... it then sleeps for 4 minutes, and does it all over again... sending out correct local time to RIC 224 every 4 minutes, simulating the real RIC 224 from DAPNET that we blacklisted because it was giving Germany time.
 
 So, what I've effectively done is blocked the DAPNET RIC224 Germany local time message, and replaced it with my own using my Pi-Star's ACTUAL local time... 
-now my pager gets its TRUE local time
+now my pager gets its TRUE local time.   As you can see here, I have temporarily unblocked the DAPNET RIC224 so we can see both in the log.
+
+M: 2024-02-25 01:50:04.817 Sending message in slot 0 to 0000224, type 6, func Alphanumeric: "YYYYMMDDHHMMSS240225025000"
+M: 2024-02-25 01:50:04.828 Sending message in slot 0 to 0000008, type 6, func Alphanumeric: "wa1okb"
+M: 2024-02-25 01:50:04.967 Sending message in slot 0 to 0000224, type 6, func Alphanumeric: "YYYYMMDDHHMMSS240224205004" by POCSAGLocalTime
+
+So with the DAPNET RIC224 blocked, my pager only sees the one sent by me with the correct local time, and in the correct designated timeslot.
 
 If using the systemd.service file I've included, it won't start the application until the system time has been synchronized, so make sure you enable the systemd-time-wait-sync.service with 'sudo systemctl enable systemd-time-wait-sync.service'
+
+Enjoy
+73
+WA1OKB
+
