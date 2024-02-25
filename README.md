@@ -17,7 +17,9 @@ So, what I've effectively done is blocked the DAPNET RIC224 Germany local time m
 now my pager gets its TRUE local time.   As you can see here, I have temporarily unblocked the DAPNET RIC224 so we can see both in the log.
 
 M: 2024-02-25 01:50:04.817 Sending message in slot 0 to 0000224, type 6, func Alphanumeric: "YYYYMMDDHHMMSS240225025000"
+
 M: 2024-02-25 01:50:04.828 Sending message in slot 0 to 0000008, type 6, func Alphanumeric: "wa1okb"
+
 M: 2024-02-25 01:50:04.967 Sending message in slot 0 to 0000224, type 6, func Alphanumeric: "YYYYMMDDHHMMSS240224205004" by POCSAGLocalTime
 
 So with the DAPNET RIC224 blocked, my pager only sees the one sent by me with the correct local time, and in the correct designated timeslot.
