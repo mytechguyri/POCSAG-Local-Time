@@ -1,6 +1,6 @@
 [Unit]
 Description=POCSAGLocalTime Service
-After=syslog.target network.target
+After=network.target time-sync.target
 
 [Service]
 Type=simple
