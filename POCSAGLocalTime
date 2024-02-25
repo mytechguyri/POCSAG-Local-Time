@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 import os
 import glob 
 import time
@@ -15,13 +14,13 @@ def SendMessage ():
     args = command.split()
     result = subprocess.run(args)
     if result.returncode == 1:
-        logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS {now.strftime('%y%m%d%H%M%S')}\"")
+        logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS{now.strftime('%y%m%d%H%M%S')}\"")
     else:
        print(f'RemoteCommand failed with return code {result.returncode}')
     return()
 
 def GetLogFile ():
-    date_today = datetime.now().strftime('%Y-%m-%d')
+    date_today = datetime.utcnow().strftime('%Y-%m-%d')
     logfile_today = '/var/log/pi-star/DAPNETGateway-' + date_today + '.log'
     
     if not os.path.exists(logfile_today):
@@ -34,14 +33,13 @@ def GetLogFile ():
 
     # Add new handler with the most recent log file
     handler = logging.FileHandler(logfile_today)
-    formatter = logging.Formatter('M: %(asctime)s.%(msecs)03d %(message)s - %(name)s',"%Y-%m-%d %H:%M:%S")
+    formatter = logging.Formatter('M: %(asctime)s.%(msecs)03d %(message)s by %(name)s',"%Y-%m-%d %H:%M:%S")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
     return logfile_today
 
 def GetTimeslots():
-    date_today = datetime.now().strftime('%Y-%m-%d')
     logfile_today = GetLogFile()
     
     search_phrase = 'Schedule information received: '
@@ -82,12 +80,13 @@ def calculate_timeslot_time(timeslot):
     slot_start = block_start + timeslot * 64
 
     # convert back to a datetime object
-    slot_time = datetime.fromtimestamp(slot_start / 10)
+    slot_time = datetime.utcfromtimestamp(slot_start / 10)
     return slot_time
 
 # Setup logging
 logger = logging.getLogger('POCSAGLocalTime')
 logger.setLevel(logging.DEBUG)
+logging.Formatter.converter = time.gmtime
 
 # Main Loop
 while True:
@@ -98,7 +97,7 @@ while True:
     next_timeslot, next_timeslot_time = timeslots[0]
 
     # wait until the next timeslot time
-    while datetime.now() < next_timeslot_time:
+    while datetime.utcnow() < next_timeslot_time:
         time.sleep(1)
 
     SendMessage()
