@@ -3,31 +3,47 @@ import logging
 from datetime import datetime
 from datetime import timedelta
 import os
+import glob 
 import time
-import glob
+import subprocess
 
-# Setup logging
-logger = logging.getLogger('POCSAGLocalTime')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler('/var/log/pi-star/DAPNETGateway.log')
-formatter = logging.Formatter('M: %(asctime)s.%(msecs)03d %(message)s - by %(name)s',"%Y-%m-%d %H:%M:%S")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# Define Functions
 
 def SendMessage ():
     now = datetime.now()
     command = "RemoteCommand 7642 page 224 \"YYYYMMDDHHMMSS" + now.strftime("%y%m%d%H%M%S") + "\""
-    logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS {now.strftime('%y%m%d%H%M%S')}\"")
-    os.system(command)
+    args = command.split()
+    result = subprocess.run(args)
+    if result.returncode == 1:
+        logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS {now.strftime('%y%m%d%H%M%S')}\"")
+    else:
+       print(f'RemoteCommand failed with return code {result.returncode}')
     return()
 
-def GetTimeslots():
+def GetLogFile ():
     date_today = datetime.now().strftime('%Y-%m-%d')
     logfile_today = '/var/log/pi-star/DAPNETGateway-' + date_today + '.log'
     
     if not os.path.exists(logfile_today):
         list_of_files = glob.glob('/var/log/pi-star/DAPNETGateway-*.log')  # get list of all log files
         logfile_today = max(list_of_files, key=os.path.getctime)  # find the most recent log file
+
+    # Remove old handler from the logger
+    if logger.handlers:
+        logger.removeHandler(logger.handlers[0])
+
+    # Add new handler with the most recent log file
+    handler = logging.FileHandler(logfile_today)
+    formatter = logging.Formatter('M: %(asctime)s.%(msecs)03d %(message)s - %(name)s',"%Y-%m-%d %H:%M:%S")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    return logfile_today
+
+def GetTimeslots():
+    date_today = datetime.now().strftime('%Y-%m-%d')
+    logfile_today = GetLogFile()
+    
     search_phrase = 'Schedule information received: '
     while True:
         with open(logfile_today, 'r') as file:
@@ -40,7 +56,6 @@ def GetTimeslots():
                 index = line.find(search_phrase)
                 # Extract the 4 characters after "received: "
                 timeslot = line[index + len(search_phrase):index + len(search_phrase) + 4]
-                print (timeslot)
                 return timeslot
         # If no timeslot was found, wait for 5 seconds and then try again
         time.sleep(5)
@@ -69,6 +84,10 @@ def calculate_timeslot_time(timeslot):
     # convert back to a datetime object
     slot_time = datetime.fromtimestamp(slot_start / 10)
     return slot_time
+
+# Setup logging
+logger = logging.getLogger('POCSAGLocalTime')
+logger.setLevel(logging.DEBUG)
 
 # Main Loop
 while True:
