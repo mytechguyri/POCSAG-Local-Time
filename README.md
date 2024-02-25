@@ -15,3 +15,5 @@ So, once we know our timeslot, it calculates when the next assigned timeslot is,
 
 So, what I've effectively done is blocked the DAPNET RIC224 Germany local time message, and replaced it with my own using my Pi-Star's ACTUAL local time... 
 now my pager gets its TRUE local time
+
+If using the systemd.service file I've included, it won't start the application until the system time has been synchronized, so make sure you enable the systemd-time-wait-sync.service with 'sudo systemctl enable systemd-time-wait-sync.service'
