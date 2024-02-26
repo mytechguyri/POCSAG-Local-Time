@@ -7,3 +7,4 @@ sudo systemctl daemon-reload
 sudo systemctl start pocsaglocaltime
 sudo systemctl enable pocsaglocaltime
 sudo systemctl enable systemd-timesyncd.service
+echo "Make sure you enable RF Remote Control from the Admin--->System Manager screen of the dashboard"
