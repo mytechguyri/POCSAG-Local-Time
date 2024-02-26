@@ -15,8 +15,12 @@ def SendMessage ():
     result = subprocess.run(args)
     if result.returncode == 1:
         logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS{now.strftime('%y%m%d%H%M%S')}\"")
+    elif result.returncode == 0:
+        logger.error(f"Unable to send time message, please make sure you have enabled RF Remote Control in Admin->SystemManager")
+        raise Exception('Remote Control not enabled')
     else:
-       print(f'RemoteCommand failed with return code {result.returncode}')
+        logger.error(f'RemoteCommand failed with return code {result.returncode}')
+        raise Exception(f'RemoteCommand failed with return code {result.returncode}')
     return()
 
 def GetLogFile ():
