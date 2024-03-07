@@ -21,24 +21,28 @@ def SendMessage():
     return()
 
 def GetLogFile ():
-    date_today = datetime.utcnow().strftime('%Y-%m-%d')
-    logfile_today = '/var/log/pi-star/DAPNETGateway-' + date_today + '.log'
-    
-    if not os.path.exists(logfile_today):
-        list_of_files = glob.glob('/var/log/pi-star/DAPNETGateway-*.log')  # get list of all log files
-        logfile_today = max(list_of_files, key=os.path.getctime)  # find the most recent log file
+    while True:
+        try:
+            date_today = datetime.utcnow().strftime('%Y-%m-%d')
+            logfile_today = '/var/log/pi-star/DAPNETGateway-' + date_today + '.log'
 
-    # Remove old handler from the logger
-    if logger.handlers:
-        logger.removeHandler(logger.handlers[0])
+            if not os.path.exists(logfile_today):
+                list_of_files = glob.glob('/var/log/pi-star/DAPNETGateway-*.log')  # get list of all log files
+                logfile_today = max(list_of_files, key=os.path.getctime)  # find the most recent log file
 
-    # Add new handler with the most recent log file
-    handler = logging.FileHandler(logfile_today)
-    formatter = logging.Formatter('M: %(asctime)s.%(msecs)03d %(message)s by %(name)s',"%Y-%m-%d %H:%M:%S")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+            # Remove old handler from the logger
+            if logger.handlers:
+                logger.removeHandler(logger.handlers[0])
 
-    return logfile_today
+            # Add new handler with the most recent log file
+            handler = logging.FileHandler(logfile_today)
+            formatter = logging.Formatter('M: %(asctime)s.%(msecs)03d %(message)s by %(name)s',"%Y-%m-%d %H:%M:%S")
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+
+            return logfile_today
+        except ValueError:
+            time.sleep(30)
 
 def GetTimeslots():
     logfile_today = GetLogFile()
