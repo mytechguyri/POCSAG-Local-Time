@@ -10,11 +10,11 @@ import subprocess
 
 def SendMessage():
     now = datetime.now()
-    command = "RemoteCommand 7642 page 224 \"YYYYMMDDHHMMSS" + now.strftime("%y%m%d%H%M%S") + "\""
-    args = command.split()
+    localtime = now.strftime('%y%m%d%H%M%S')
+    command = ['RemoteCommand', '7642', 'page', '224', f'"YYYYMMDDHHMMSS{localtime}"']
     try:
-        result = subprocess.run(args, check=True)
-        logger.info(f"Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: \"YYYYMMDDHHMMSS{now.strftime('%y%m%d%H%M%S')}\"")
+        result = subprocess.run(command, check=True)
+        logger.info(f'Sending message in slot {next_timeslot} to 0000224, type 6, func Alphanumeric: "YYYYMMDDHHMMSS{localtime}"')
     except subprocess.CalledProcessError as e:
         logger.error(f"Unable to send time message, please make sure you have enabled RF Remote Control in Admin->SystemManager")
         raise Exception(f'RemoteCommand failed with return code {e.returncode}')
@@ -25,7 +25,7 @@ def GetLogFile ():
         try:
             date_today = datetime.utcnow().strftime('%Y-%m-%d')
             logfile_today = '/var/log/pi-star/DAPNETGateway-' + date_today + '.log'
-
+    
             if not os.path.exists(logfile_today):
                 list_of_files = glob.glob('/var/log/pi-star/DAPNETGateway-*.log')  # get list of all log files
                 logfile_today = max(list_of_files, key=os.path.getctime)  # find the most recent log file
