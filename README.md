@@ -1,5 +1,5 @@
 # POCSAG-Local-Time
-Force Pi-Star DAPNET/POCSAG to send LOCAL time on RIC 224 to auto set time on pager
+Force Pi-Star/WPSD/MMDVM DAPNET/POCSAG to send LOCAL time on RIC 224 to auto set time on pager
 
 So, I had purchased an Alphapoc style pager (the typical Chinese clone on ebay Model GP2009N)
 and it works great.... But one thing I noted, supposedly if you add RIC 224 in slot 8 it will automatically set the pager's clock to local time.
