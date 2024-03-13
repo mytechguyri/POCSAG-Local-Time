@@ -24,7 +24,7 @@ M: 2024-02-25 01:50:04.967 Sending message in slot 0 to 0000224, type 6, func Al
 
 So with the DAPNET RIC224 blocked, my pager only sees the one sent by me with the correct local time, and in the correct designated timeslot.
 
-If using the systemd.service file I've included, it won't start the application until the system time has been synchronized, so make sure you enable the systemd-time-wait-sync.service with 'sudo systemctl enable systemd-time-wait-sync.service'
+
 
 Enjoy
 73
