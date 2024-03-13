@@ -4,6 +4,8 @@ After=network.target time-sync.target
 
 [Service]
 Type=simple
+PermissionsStartOnly=true
+ExecStartPre=/bin/bash -c '/sbin/iptables -D OUTPUT -p tcp --dport 8080 -j ACCEPT; /sbin/iptables -A OUTPUT -p tcp --dport 8080 -j ACCEPT'
 ExecStart=/usr/local/bin/POCSAGLocalTime
 User=mmdvm
 
