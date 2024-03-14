@@ -69,7 +69,6 @@ def calculate_timeslots(hex_string):
     for i in range(0, len(hex_string)):
         timeslot = int(hex_string[i], 16)
         timeslots.append((timeslot, calculate_timeslot_time(timeslot)))
-    print (timeslots)
     return timeslots
 
 def calculate_timeslot_time(timeslot):
@@ -81,7 +80,6 @@ def calculate_timeslot_time(timeslot):
         block_start += 1024  # next block
     slot_start = block_start + timeslot * 64
     slot_time = datetime.utcfromtimestamp(slot_start / 10)
-    print (slot_time)
     return slot_time
 
 # Setup logging
