@@ -51,14 +51,14 @@ def GetTimeslots():
         try:
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
-        except RequestException as e:
+        except (RequestException, Exception) as e:
             if response:
                 errormsg = json.loads(response.text)
                 e_n = errormsg.get('name')
                 e_m = errormsg.get('message')
                 logger.error(f"Failed to connect to {url}:  {response.status_code} {e_n} {e_m}, retrying...")
             else:
-                logger.error(f"Failed to connect to {url}, retrying...")
+                logger.error(f"An unexpected error occured: {str(e)}, retrying...")
             time.sleep(60)
         data = response.json()
         timeslot = data["timeSlot"]
