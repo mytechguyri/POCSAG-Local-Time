@@ -46,23 +46,23 @@ def GetTimeslots():
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
     url = (f"http://hampager.de:8080/transmitters/{owner}")
-    response = None
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        print (response)
-    except RequestException as e:
-        if response:
-            errormsg = json.loads(response.text)
-            e_n = errormsg.get('name')
-            e_m = errormsg.get('message')
-            logger.error(f"Failed to connect to {url}:  {response.status_code} {e_n} {e_m}")
-        else:
-            logger.error(f"Failed to connect to {url}")
-        time.sleep(5)
-    data = response.json()
-    timeslot = data["timeSlot"]
-    return timeslot
+    while True:
+        response = None
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+        except RequestException as e:
+            if response:
+                errormsg = json.loads(response.text)
+                e_n = errormsg.get('name')
+                e_m = errormsg.get('message')
+                logger.error(f"Failed to connect to {url}:  {response.status_code} {e_n} {e_m}, retrying...")
+            else:
+                logger.error(f"Failed to connect to {url}, retrying...")
+            time.sleep(60)
+        data = response.json()
+        timeslot = data["timeSlot"]
+        return timeslot
 
 def calculate_timeslots(hex_string):
     timeslots = []
