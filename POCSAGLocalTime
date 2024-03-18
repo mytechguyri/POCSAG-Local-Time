@@ -40,16 +40,16 @@ def GetLogFile ():
 
 def GetTimeslots():
     config = configparser.ConfigParser()
-    config.read('/etc/dapnetapi.key')
-    owner = config.get('DAPNETAPI', 'USER')
+    config.read('/etc/dapnetgateway')
+    transmitter = config.get('General', 'Callsign')
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
-    url = (f"http://hampager.de:8080/transmitters/{owner}")
+    url = (f"http://hampager.de:8080/transmitters/{transmitter}")
     while True:
         response = None
         try:
-            response = requests.get(url, headers=headers, timeout=10)
+            response = requests.get(url, headers=headers, timeout=20)
             response.raise_for_status()
         except (RequestException, Exception) as e:
             if response:
@@ -62,6 +62,7 @@ def GetTimeslots():
             time.sleep(60)
         data = response.json()
         timeslot = data["timeSlot"]
+        logger.info(f"Got timeslots {timeslot} from {url} for Transmitter ID {transmitter}")
         return timeslot
 
 def calculate_timeslots(hex_string):
@@ -91,12 +92,15 @@ logging.Formatter.converter = time.gmtime
 
 # Main Loop
 while True:
-    GetLogFile()
-    hex_string = GetTimeslots()  # get the timeslot string from the DAPNET API
-    timeslots = calculate_timeslots(hex_string)
-    timeslots.sort(key=lambda x: x[1])
-    next_timeslot, next_timeslot_time = timeslots[0]
-    while datetime.utcnow() < next_timeslot_time:
-        time.sleep(1)
-    SendMessage()
-    time.sleep(4 * 60)
+    try:
+        GetLogFile()
+        hex_string = GetTimeslots()  # get the timeslot string from the DAPNET API
+        timeslots = calculate_timeslots(hex_string)
+        timeslots.sort(key=lambda x: x[1])
+        next_timeslot, next_timeslot_time = timeslots[0]
+        while datetime.utcnow() < next_timeslot_time:
+            time.sleep(1)
+        SendMessage()
+    except Exception as e:
+        logger.error(f"An unexpected error occured: {str(e)}")        
+    time.sleep(10 * 60)
