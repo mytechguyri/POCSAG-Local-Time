@@ -62,7 +62,8 @@ def GetTimeslots():
             time.sleep(60)
         data = response.json()
         timeslot = data["timeSlot"]
-        logger.info(f"Got timeslots {timeslot} from {url} for Transmitter ID {transmitter}")
+        if timeslot != hex_string:
+            logger.info(f"Got timeslots {timeslot} from {url} for Transmitter ID {transmitter}")
         return timeslot
 
 def calculate_timeslots(hex_string):
@@ -89,7 +90,7 @@ logger = logging.getLogger('POCSAGLocalTime')
 GetLogFile()
 logger.setLevel(logging.DEBUG)
 logging.Formatter.converter = time.gmtime
-
+hex_string = None
 # Main Loop
 while True:
     try:
