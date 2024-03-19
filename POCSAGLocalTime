@@ -8,6 +8,7 @@ import subprocess
 import requests
 from requests.exceptions import RequestException
 import configparser
+import threading
 
 # Define Functions
 
@@ -21,6 +22,28 @@ def SendMessage():
     except subprocess.CalledProcessError as e:
         logger.error(f"Unable to send time message, please make sure you have enabled RF Remote Control in Admin->SystemManager")
     return
+
+def SendIdent():
+    cfg = configparser.ConfigParser()
+    cfg.read('/etc/mmdvmhost')
+    callsign = config.get('General', 'Callsign')
+    while True:
+        try:
+            time.sleep(10*60)
+            if hex_string:
+                ts = calculate_timeslots(hex_string)
+                ts.sort(key=lambda x: x[1])
+                next_ts, next_ts_time = ts[0]
+                while datetime.utcnow() < next_ts_time:
+                    time.sleep(1)
+                cmd = ['RemoteCommand', '7642', 'page', '8', f'"{callsign}"']
+                try:
+                    res = subprocess.run(cmd, check=True)
+                    logger.info(f'Sending message in slot {next_ts} to 0000008, type 6, func Alphanumeric: "{callsign}"')
+                except subprocess.CalledProcessError as e:
+                    logger.info(f"Unable to send transmitter identification, please make sure you have enabled RF Remote Control in Admin->SystemManager")
+        except Exception as e:
+            logger.error(f"An unexpected error occured: {str(e)}")
 
 def GetLogFile ():
     while True:
@@ -91,17 +114,21 @@ GetLogFile()
 logger.setLevel(logging.DEBUG)
 logging.Formatter.converter = time.gmtime
 hex_string = None
+ident_thread = threading.Thread(target = SendIdent)
+ident_thread.start()
+
 # Main Loop
 while True:
     try:
         GetLogFile()
         hex_string = GetTimeslots()  # get the timeslot string from the DAPNET API
-        timeslots = calculate_timeslots(hex_string)
-        timeslots.sort(key=lambda x: x[1])
-        next_timeslot, next_timeslot_time = timeslots[0]
-        while datetime.utcnow() < next_timeslot_time:
-            time.sleep(1)
-        SendMessage()
+        if hex_string:
+            timeslots = calculate_timeslots(hex_string)
+            timeslots.sort(key=lambda x: x[1])
+            next_timeslot, next_timeslot_time = timeslots[0]
+            while datetime.utcnow() < next_timeslot_time:
+                time.sleep(1)
+            SendMessage()
     except Exception as e:
-        logger.error(f"An unexpected error occured: {str(e)}")        
-    time.sleep(10 * 60)
+        logger.error(f"An unexpected error occured: {str(e)}")
+    time.sleep(4 * 60)
