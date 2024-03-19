@@ -63,7 +63,7 @@ def GetTimeslots():
         data = response.json()
         timeslot = data["timeSlot"]
         if timeslot != hex_string:
-            logger.info(f"Got timeslots {timeslot} from {url} for Transmitter ID {transmitter}")
+            logger.info(f"Got timeslots {timeslot} for Transmitter ID {transmitter} from {url}")
         return timeslot
 
 def calculate_timeslots(hex_string):
