@@ -1,4 +1,6 @@
 # POCSAG-Local-Time
+NOTE:  This branch has added a transmitter identification feature.  When you have multiple transmitters, each transmitter has a unique id, so for example, primary transmitter wa1okb, and secondary transmitter as wa1okb1, third transmitter as wa1okb2, etc.   and DAPNET sends the transmitter id every 10 minutes in RIC 8, which meets the transmitting your call sign every 10 minutes requirement, however, wa1okb1 isn't my callsign... wa1okb is.  So, using the same principal as for the 224 RIC, we're going to blacklist the DAPNET RIC 8 and substitute our own.   This branch starts a separate thread that will send your regular callsign as listed in the /etc/mmdvmhost config file every 10 minutes.
+
 Force Pi-Star/WPSD/MMDVM DAPNET/POCSAG to send LOCAL time on RIC 224 to auto set time on pager
 
 So, I had purchased an Alphapoc style pager (the typical Chinese clone on ebay Model GP2009N)
