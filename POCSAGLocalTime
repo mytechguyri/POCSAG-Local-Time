@@ -95,13 +95,14 @@ hex_string = None
 while True:
     try:
         GetLogFile()
-        hex_string = GetTimeslots()  # get the timeslot string from the DAPNET API
-        timeslots = calculate_timeslots(hex_string)
-        timeslots.sort(key=lambda x: x[1])
-        next_timeslot, next_timeslot_time = timeslots[0]
-        while datetime.utcnow() < next_timeslot_time:
-            time.sleep(1)
-        SendMessage()
+        hex_string = GetTimeslots()
+        if hex_string:
+            timeslots = calculate_timeslots(hex_string)
+            timeslots.sort(key=lambda x: x[1])
+            next_timeslot, next_timeslot_time = timeslots[0]
+            while datetime.utcnow() < next_timeslot_time:
+                time.sleep(1)
+            SendMessage()
     except Exception as e:
         logger.error(f"An unexpected error occured: {str(e)}")        
-    time.sleep(10 * 60)
+    time.sleep(4 * 60)
