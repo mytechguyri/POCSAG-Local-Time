@@ -26,7 +26,7 @@ def SendMessage():
 def SendIdent():
     cfg = configparser.ConfigParser()
     cfg.read('/etc/mmdvmhost')
-    callsign = config.get('General', 'Callsign')
+    callsign = cfg.get('General', 'Callsign')
     while True:
         try:
             time.sleep(10*60)
